@@ -2,28 +2,28 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Name of person that compiled this program */
-#define COMPILE_BY "Sharkus"
+#define COMPILE_BY        "Sharkus"
 
 /* Date program was compiled */
-#define COMPILE_TIME "Tue Aug 14 10:16:05 PDT 2012"
+#define COMPILE_TIME      "Tue Aug 14 10:16:05 PDT 2012"
 
 /* description */
-#define COMPILE_VERSION 0
+#define COMPILE_VERSION   0
 
 /* Define to 1 if you have the `bzero' function. */
-#define HAVE_BZERO 1
+#define HAVE_BZERO        1
 
 /* Define to 1 if you have the <fcntl.h> header file. */
-#define HAVE_FCNTL_H 1
+#define HAVE_FCNTL_H      1
 
 /* Define to 1 if you have the `gethostname' function. */
-#define HAVE_GETHOSTNAME 1
+#define HAVE_GETHOSTNAME  1
 
 /* Define to 1 if you have the `gettimeofday' function. */
 #define HAVE_GETTIMEOFDAY 1
 
 /* Define to 1 if you have the <inttypes.h> header file. */
-#define HAVE_INTTYPES_H 1
+#define HAVE_INTTYPES_H   1
 
 /* Define to 1 if you have the `GL' library (-lGL). */
 /* #undef HAVE_LIBGL */
@@ -32,136 +32,136 @@
 /* #undef HAVE_LIBHISTORY */
 
 /* Define to 1 if your system has a GNU libc compatible `malloc' function, and
-   to 0 otherwise. */
-#define HAVE_MALLOC 1
+ * to 0 otherwise. */
+#define HAVE_MALLOC              1
 
 /* Define to 1 if you have the <memory.h> header file. */
-#define HAVE_MEMORY_H 1
+#define HAVE_MEMORY_H            1
 
 /* Define to 1 if you have the `memset' function. */
-#define HAVE_MEMSET 1
+#define HAVE_MEMSET              1
 
 /* Define to 1 if you have the `mkdir' function. */
-#define HAVE_MKDIR 1
+#define HAVE_MKDIR               1
 
 /* Define if Readline is used. */
-#define HAVE_READLINE 1
+#define HAVE_READLINE            1
 
 /* Define to 1 if you have the <readline/history.h> header file. */
-#define HAVE_READLINE_HISTORY_H 1
+#define HAVE_READLINE_HISTORY_H  1
 
 /* Define to 1 if you have the <readline/readline.h> header file. */
 #define HAVE_READLINE_READLINE_H 1
 
 /* Define to 1 if you have the `select' function. */
-#define HAVE_SELECT 1
+#define HAVE_SELECT              1
 
 /* Define to 1 if `stat' has the bug that it succeeds when given the
-   zero-length file name argument. */
+ * zero-length file name argument. */
 /* #undef HAVE_STAT_EMPTY_STRING_BUG */
 
 /* Define to 1 if you have the <stdint.h> header file. */
-#define HAVE_STDINT_H 1
+#define HAVE_STDINT_H            1
 
 /* Define to 1 if you have the <stdlib.h> header file. */
-#define HAVE_STDLIB_H 1
+#define HAVE_STDLIB_H            1
 
 /* Define to 1 if you have the `strdup' function. */
-#define HAVE_STRDUP 1
+#define HAVE_STRDUP              1
 
 /* Define to 1 if you have the <strings.h> header file. */
-#define HAVE_STRINGS_H 1
+#define HAVE_STRINGS_H           1
 
 /* Define to 1 if you have the <string.h> header file. */
-#define HAVE_STRING_H 1
+#define HAVE_STRING_H            1
 
 /* Define to 1 if you have the `strrchr' function. */
-#define HAVE_STRRCHR 1
+#define HAVE_STRRCHR             1
 
 /* Define to 1 if you have the <sys/ioctl.h> header file. */
-#define HAVE_SYS_IOCTL_H 1
+#define HAVE_SYS_IOCTL_H         1
 
 /* Define to 1 if you have the <sys/select.h> header file. */
-#define HAVE_SYS_SELECT_H 1
+#define HAVE_SYS_SELECT_H        1
 
 /* Define to 1 if you have the <sys/socket.h> header file. */
-#define HAVE_SYS_SOCKET_H 1
+#define HAVE_SYS_SOCKET_H        1
 
 /* Define to 1 if you have the <sys/stat.h> header file. */
-#define HAVE_SYS_STAT_H 1
+#define HAVE_SYS_STAT_H          1
 
 /* Define to 1 if you have the <sys/time.h> header file. */
-#define HAVE_SYS_TIME_H 1
+#define HAVE_SYS_TIME_H          1
 
 /* Define to 1 if you have the <sys/types.h> header file. */
-#define HAVE_SYS_TYPES_H 1
+#define HAVE_SYS_TYPES_H         1
 
 /* Define to 1 if you have the <termios.h> header file. */
-#define HAVE_TERMIOS_H 1
+#define HAVE_TERMIOS_H           1
 
 /* Define to 1 if you have the `uname' function. */
-#define HAVE_UNAME 1
+#define HAVE_UNAME               1
 
 /* Define to 1 if you have the <unistd.h> header file. */
-#define HAVE_UNISTD_H 1
+#define HAVE_UNISTD_H            1
 
 /* Define if MIT Shared Memory extension is used. */
-#define HAVE_XSHM 1
+#define HAVE_XSHM                1
 
 /* Define to 1 if `lstat' dereferences a symlink specified with a trailing
-   slash. */
+ * slash. */
 /* #undef LSTAT_FOLLOWS_SLASHED_SYMLINK */
 
 /* Name of package */
-#define PACKAGE "x48"
+#define PACKAGE                  "x48"
 
 /* Define to the address where bug reports for this package should be sent. */
-#define PACKAGE_BUGREPORT "x48-bugs@gam3.net"
+#define PACKAGE_BUGREPORT        "x48-bugs@gam3.net"
 
 /* Define to the full name of this package. */
-#define PACKAGE_NAME "x48"
+#define PACKAGE_NAME             "x48"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "x48 0.6.4"
+#define PACKAGE_STRING           "x48 0.6.4"
 
 /* Define to the one symbol short name of this package. */
-#define PACKAGE_TARNAME "x48"
+#define PACKAGE_TARNAME          "x48"
 
 /* Define to the home page for this package. */
-#define PACKAGE_URL ""
+#define PACKAGE_URL              ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "0.6.4"
+#define PACKAGE_VERSION          "0.6.4"
 
 /* The patch level */
-#define PATCHLEVEL 4
+#define PATCHLEVEL               4
 
 /* Define to the type of arg 1 for `select'. */
-#define SELECT_TYPE_ARG1 int
+#define SELECT_TYPE_ARG1         int
 
 /* Define to the type of args 2, 3 and 4 for `select'. */
-#define SELECT_TYPE_ARG234 (fd_set *)
+#define SELECT_TYPE_ARG234       (fd_set *)
 
 /* Define to the type of arg 5 for `select'. */
-#define SELECT_TYPE_ARG5 (struct timeval *)
+#define SELECT_TYPE_ARG5         (struct timeval *)
 
 /* Define to 1 if you have the ANSI C header files. */
-#define STDC_HEADERS 1
+#define STDC_HEADERS             1
 
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
-#define TIME_WITH_SYS_TIME 1
+#define TIME_WITH_SYS_TIME       1
 
 /* Define to 1 if your <sys/time.h> declares `struct tm'. */
 /* #undef TM_IN_SYS_TIME */
 
 /* Version number of package */
-#define VERSION "0.6.4"
+#define VERSION                  "0.6.4"
 
 /* The major version number */
-#define VERSION_MAJOR 0
+#define VERSION_MAJOR            0
 
 /* The minor version number */
-#define VERSION_MINOR 6
+#define VERSION_MINOR            6
 
 /* Define to 1 if the X Window System is missing or not being used. */
 /* #undef X_DISPLAY_MISSING */
@@ -170,7 +170,7 @@
 /* #undef const */
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
-   calls it, or to nothing if 'inline' is not supported under any name.  */
+ * calls it, or to nothing if 'inline' is not supported under any name.  */
 #ifndef __cplusplus
 /* #undef inline */
 #endif

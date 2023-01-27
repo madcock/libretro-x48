@@ -140,7 +140,8 @@ extern char *dec_local_ident	__ProtoType__((word_20 *addr, char *string));
 extern char *dec_xlib_name	__ProtoType__((word_20 *addr, char *string));
 extern char *dec_unit_op	__ProtoType__((word_20 *addr, char *string));
 
-int LoadObject( char *filename );
+int LoadObject(int objectSize, char *object);
+int oldLoadObject(char *filename);
 int read_bin_file(char *filename);
 
 void RPL_Push( word_20 n );

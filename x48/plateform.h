@@ -143,4 +143,10 @@ extern disp_t disp;
 
 #define LAST_BUTTON     48
 
+#define HANDLED_BUTTON  49
+
+
+
+void on_event(void);
+
 #endif

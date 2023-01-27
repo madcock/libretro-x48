@@ -13,12 +13,31 @@
 #include "x48/gif.h"
 
 #include "zip/ziptool.h"
+#include "zip/miniz.h"
 
-#define maxByCycle 400 // 50 fois par frame
+#define RETRO_DEVICE_AUTO     RETRO_DEVICE_JOYPAD
+#define RETRO_DEVICE_GAMEPAD  RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_JOYPAD, 0)
+#define RETRO_DEVICE_ARKANOID RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE, 0)
+#define RETRO_DEVICE_ZAPPER   RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_POINTER, 0)
+
+#define PXtoPOS(x) ((x) / 1)
+#define PYtoPOS(y) ((y) / 1)
+
+
+
+void draw_zoomcursor(unsigned short int *surface, int x, int y);
+void draw_cross(unsigned short int *surface, int x, int y);
+void restore_background_cross(unsigned short int *surface, int x, int y);
+
+#define maxByCycle 400            // 50 fois par frame
 
 int borderX = 1;
 int borderY = 1;
 int zoom = 1;
+
+int last_press;
+
+int px = -1, py = -1;
 
 extern unsigned char background_gif[];
 extern unsigned int background_gif_len;
@@ -28,6 +47,8 @@ bool old_mouse_l = false;
 u8 *snapshot = NULL;
 u32 snapshotLength;
 
+int object_size;
+char *object;
 
 char fullscreen = 1;
 
@@ -42,6 +63,10 @@ int winH, winW;
 u16 *background;
 
 int order = 0; // For the surrounder pixel
+
+int p_x, p_y;
+
+char keypad_pressed[HANDLED_BUTTON];
 
 char Core_Key_Sate[512];
 char Core_old_Key_Sate[512];
@@ -85,34 +110,96 @@ struct CrocoKeyMap {
 
     int scanCode;
 } crocokeymap[] = {
-    {0, RETRO_DEVICE_ID_JOYPAD_A,      BUTTON_A        },
-    {0, RETRO_DEVICE_ID_JOYPAD_B,      BUTTON_B        },
-    {0, RETRO_DEVICE_ID_JOYPAD_UP,     BUTTON_UP       },
-    {0, RETRO_DEVICE_ID_JOYPAD_RIGHT,  BUTTON_RIGHT    },
-    {0, RETRO_DEVICE_ID_JOYPAD_LEFT,   BUTTON_LEFT     },
-    {0, RETRO_DEVICE_ID_JOYPAD_DOWN,   BUTTON_DOWN     },
-    {0, RETRO_DEVICE_ID_JOYPAD_X,      BUTTON_C        },
-    {0, RETRO_DEVICE_ID_JOYPAD_Y,      BUTTON_D        },    // 7
-    {0, RETRO_DEVICE_ID_JOYPAD_L,      BUTTON_E        },
-    {0, RETRO_DEVICE_ID_JOYPAD_R,      BUTTON_F        },
-    {0, RETRO_DEVICE_ID_JOYPAD_SELECT, BUTTON_EVAL     },
-    {0, RETRO_DEVICE_ID_JOYPAD_START,  BUTTON_ENTER    },    // 11
+    {0, RETRO_DEVICE_ID_JOYPAD_A,      BUTTON_A},
+    {0, RETRO_DEVICE_ID_JOYPAD_B,      BUTTON_B},
+    {0, RETRO_DEVICE_ID_JOYPAD_UP,     BUTTON_UP},
+    {0, RETRO_DEVICE_ID_JOYPAD_RIGHT,  BUTTON_RIGHT},
+    {0, RETRO_DEVICE_ID_JOYPAD_LEFT,   BUTTON_LEFT},
+    {0, RETRO_DEVICE_ID_JOYPAD_DOWN,   BUTTON_DOWN},
+    {0, RETRO_DEVICE_ID_JOYPAD_X,      BUTTON_C},
+    {0, RETRO_DEVICE_ID_JOYPAD_Y,      BUTTON_D},            // 7
+    {0, RETRO_DEVICE_ID_JOYPAD_L,      BUTTON_E},
+    {0, RETRO_DEVICE_ID_JOYPAD_R,      BUTTON_F},
+    {0, RETRO_DEVICE_ID_JOYPAD_SELECT, BUTTON_EVAL},
+    {0, RETRO_DEVICE_ID_JOYPAD_START,  BUTTON_ENTER},        // 11
 
-    {1, RETRO_DEVICE_ID_JOYPAD_A,      BUTTON_A        },
-    {1, RETRO_DEVICE_ID_JOYPAD_B,      BUTTON_B        },
-    {1, RETRO_DEVICE_ID_JOYPAD_UP,     BUTTON_UP       },
-    {1, RETRO_DEVICE_ID_JOYPAD_RIGHT,  BUTTON_RIGHT    },
-    {1, RETRO_DEVICE_ID_JOYPAD_LEFT,   BUTTON_LEFT     },
-    {1, RETRO_DEVICE_ID_JOYPAD_DOWN,   BUTTON_DOWN     },
-    {1, RETRO_DEVICE_ID_JOYPAD_X,      LAST_BUTTON     },
-    {1, RETRO_DEVICE_ID_JOYPAD_Y,      LAST_BUTTON     },
-    {1, RETRO_DEVICE_ID_JOYPAD_L,      LAST_BUTTON     },
-    {1, RETRO_DEVICE_ID_JOYPAD_R,      LAST_BUTTON     },
-    {1, RETRO_DEVICE_ID_JOYPAD_SELECT, BUTTON_EVAL     },
-    {1, RETRO_DEVICE_ID_JOYPAD_START,  BUTTON_ENTER    }
+    {1, RETRO_DEVICE_ID_JOYPAD_A,      BUTTON_A},
+    {1, RETRO_DEVICE_ID_JOYPAD_B,      BUTTON_B},
+    {1, RETRO_DEVICE_ID_JOYPAD_UP,     BUTTON_UP},
+    {1, RETRO_DEVICE_ID_JOYPAD_RIGHT,  BUTTON_RIGHT},
+    {1, RETRO_DEVICE_ID_JOYPAD_LEFT,   BUTTON_LEFT},
+    {1, RETRO_DEVICE_ID_JOYPAD_DOWN,   BUTTON_DOWN},
+    {1, RETRO_DEVICE_ID_JOYPAD_X,      LAST_BUTTON},
+    {1, RETRO_DEVICE_ID_JOYPAD_Y,      LAST_BUTTON},
+    {1, RETRO_DEVICE_ID_JOYPAD_L,      LAST_BUTTON},
+    {1, RETRO_DEVICE_ID_JOYPAD_R,      LAST_BUTTON},
+    {1, RETRO_DEVICE_ID_JOYPAD_SELECT, BUTTON_EVAL},
+    {1, RETRO_DEVICE_ID_JOYPAD_START,  BUTTON_ENTER}
 
 };
 
+struct keyScr {
+    int x, y;
+    int w, h;
+} keyScrs[LAST_BUTTON + 1] = {
+    {19, 270, 32, 21}, //  BUTTON_A        0
+    {65, 270, 32, 21}, // BUTTON_B        1
+    {111, 270, 32, 21}, // BUTTON_C        2
+    {157, 270, 32, 21}, // BUTTON_D        3
+    {203, 270, 32, 21}, // BUTTON_E        4
+    {249, 270, 32, 21}, // BUTTON_F        5
+
+    {319, 42, 32, 24}, // BUTTON_MTH      6
+    {364, 42, 32, 24}, // BUTTON_PRG      7
+    {411, 42, 32, 24}, // BUTTON_CST      8
+    {457, 42, 32, 24}, // BUTTON_VAR      9
+    {504, 42, 32, 24}, // BUTTON_UP       10
+    {550, 42, 32, 24}, // BUTTON_NXT      11
+
+    {319, 87, 32, 24}, // BUTTON_COLON    12
+    {364, 87, 32, 24}, // BUTTON_STO      13
+    {411, 87, 32, 24}, // BUTTON_EVAL     14
+    {457, 87, 32, 24}, // BUTTON_LEFT     15
+    {504, 87, 32, 24}, // BUTTON_DOWN     16
+    {550, 87, 32, 24}, // BUTTON_RIGHT    17
+
+    {319, 132, 32, 24}, // BUTTON_SIN      18
+    {364, 132, 32, 24}, // BUTTON_COS      19
+    {411, 132, 32, 24},// BUTTON_TAN      20
+    {457, 132, 32, 24}, // BUTTON_SQRT     21
+    {504, 132, 32, 24}, // BUTTON_POWER    22
+    {550, 132, 32, 24}, // BUTTON_INV      23
+
+    {319, 177, 77, 24}, // BUTTON_ENTER    24
+    {411, 177, 32, 24}, // BUTTON_NEG      25
+    {457, 177, 32, 24}, // BUTTON_EEX      26
+    {504, 177, 32, 24}, // BUTTON_DEL      27
+    {550, 177, 32, 24}, // BUTTON_BS       28
+
+    {319, 222, 32, 24}, // BUTTON_ALPHA    29
+    {371, 222, 42, 24}, // BUTTON_7        30
+    {427, 222, 42, 24}, // BUTTON_8        31
+    {483, 222, 42, 24}, // BUTTON_9        32
+    {539, 222, 42, 24}, // BUTTON_DIV      33
+
+    {319, 267, 32, 24}, // BUTTON_SHL      34
+    {371, 267, 42, 24}, // BUTTON_4        35
+    {427, 267, 42, 24}, // BUTTON_5        36
+    {483, 267, 42, 24}, // BUTTON_6        37
+    {539, 267, 42, 24}, // BUTTON_MUL      38
+
+    {319, 312, 32, 24}, // BUTTON_SHR      39
+    {371, 312, 42, 24}, // BUTTON_1        40
+    {427, 312, 42, 24}, // BUTTON_2        41
+    {483, 312, 42, 24}, // BUTTON_3        42
+    {539, 312, 42, 24}, // BUTTON_MINUS    43
+
+    {319, 357, 32, 24}, // BUTTON_ON       44
+    {371, 357, 42, 24}, // BUTTON_0        45
+    {427, 357, 42, 24}, // BUTTON_PERIOD   46
+    {483, 357, 42, 24}, // BUTTON_SPC      47
+    {539, 357, 42, 24} // BUTTON_PLUS     48
+};
 
 
 void retro_init(void)
@@ -214,19 +301,21 @@ unsigned retro_api_version(void)
     return RETRO_API_VERSION;
 }
 
+static unsigned input_type[4];
+
 void retro_set_controller_port_device(unsigned port, unsigned device)
 {
-    (void)port;
-    (void)device;
+    if (port >= 4)
+        return;
 
-
+    input_type[port] = device;
 }
 
 void retro_get_system_info(struct retro_system_info *info)
 {
     memset(info, 0, sizeof(*info));
-    info->library_name     = "x48";
-    info->need_fullpath    = false;
+    info->library_name = "x48";
+    info->need_fullpath = false;
     info->valid_extensions = NULL; //  "lib";
 
 #ifdef GIT_VERSION
@@ -242,11 +331,11 @@ void retro_get_system_av_info(struct retro_system_av_info *info)
     info->timing.fps = 60.0;
     info->timing.sample_rate = 44100.0;
 
-    info->geometry.base_width   = width + borderX * 2;
-    info->geometry.base_height  = height + borderY * 2;
+    info->geometry.base_width = width + borderX * 2;
+    info->geometry.base_height = height + borderY * 2;
 
-    info->geometry.max_width    = 800;
-    info->geometry.max_height   = 600;
+    info->geometry.max_width = 800;
+    info->geometry.max_height = 600;
 
     info->geometry.aspect_ratio = width / height;
 }
@@ -269,25 +358,24 @@ void retro_set_environment(retro_environment_t cb)
     cb(RETRO_ENVIRONMENT_SET_SUPPORT_NO_GAME, &no_rom);
 
     static const struct retro_variable vars[] = {
-        // { "crocods_computertype", "Machine Type (Restart); CPC 464|CPC 6128" },
-        // { "crocods_vdpsync", "VDP Sync Type (Restart); Auto|50Hz|60Hz" },
-        {"crocods_greenmonitor", "Color Monitor; color|green"         },
-        {"crocods_resize",       "Resize; Auto|320x200|Overscan"      },
-        {"crocods_hack",         "Speed hack; no|yes"                 },
-        {NULL,                   NULL                                 },
+        {"crocods_greenmonitor", "Color Monitor; color|green"},
+        {"crocods_resize",       "Resize; Auto|320x200|Overscan"},
+        {"crocods_hack",         "Speed hack; no|yes"},
+        {NULL,                   NULL},
     };
 
     cb(RETRO_ENVIRONMENT_SET_VARIABLES, (void *)vars);
 
-
     static const struct retro_controller_description port[] = {
-        {"RetroPad",      RETRO_DEVICE_JOYPAD     },
-        {"RetroKeyboard", RETRO_DEVICE_KEYBOARD   },
+        {"Auto", RETRO_DEVICE_AUTO},
+        {"Gamepad", RETRO_DEVICE_GAMEPAD},
+        {"Arkanoid", RETRO_DEVICE_ARKANOID},
+        {"Zapper", RETRO_DEVICE_ZAPPER},
+        {NULL, 0}
     };
 
     static const struct retro_controller_info ports[] = {
-        {port, 2},
-        {port, 2},
+        {port, 4},
         {NULL, 0},
     };
 
@@ -322,7 +410,7 @@ void retro_set_video_refresh(retro_video_refresh_t cb)
 
 void retro_reset(void)
 {
-
+    saturn.PC = 0;
 }
 
 
@@ -339,13 +427,6 @@ void retro_key_down(int key)
 
 static char keyPressed[24] = {0};
 
-void loadSnapshot(void)
-{
-
-    if (snapshot != NULL) {
-        LireSnapshotMem(snapshot);
-    }
-}
 
 void fullScreenEnter(void)
 {
@@ -356,8 +437,8 @@ void fullScreenEnter(void)
     borderY = 1;
     zoom = 1;
 
-    geometry.base_width   = width + borderX * 2;
-    geometry.base_height  = height + borderY * 2;
+    geometry.base_width = width + borderX * 2;
+    geometry.base_height = height + borderY * 2;
     geometry.aspect_ratio = width / height;
 
     environ_cb(RETRO_ENVIRONMENT_SET_GEOMETRY, &geometry);
@@ -416,6 +497,33 @@ void retro_run(void)
 
     input_poll_cb();
 
+    // int16_t p_x = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
+    // int16_t p_y = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
+    // int p_press = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
+
+    int16_t mouse_x = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
+    int16_t mouse_y = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
+    bool mouse_l = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT);
+
+    if ((p_x + mouse_x >= 0) && (p_x + mouse_x < winW)) {
+        p_x += mouse_x;
+    }
+    if ((p_y + mouse_y >= 0) && (p_y + mouse_y < winH)) {
+        p_y += mouse_y;
+    }
+
+
+
+    // if (!input_state_cb(0, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN)) {
+    //     int cur_x = input_state_cb(0, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_SCREEN_X);
+    //     int cur_y = input_state_cb(0, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_SCREEN_Y);
+
+    //     cur_x = (cur_x + 0x7FFF) * winW / (0x7FFF * 2);
+    //     cur_y = (cur_y + 0x7FFF) * winH / (0x7FFF * 2);
+
+    //     fprintf(stderr,  " Lightgun %d %d\n", cur_x, cur_y);
+    // }
+
     int i;
 
 /*
@@ -426,29 +534,53 @@ void retro_run(void)
  *  int scanCode;
  */
 
-    for (i = 0; i < 24; i++) {
-        int scanCode = crocokeymap[i].scanCode;
+    if (1 == 0) {
 
-        if (scanCode != LAST_BUTTON) {
-            if (input_state_cb(crocokeymap[i].port, RETRO_DEVICE_JOYPAD, 0, crocokeymap[i].index)) {
-                if (keyPressed[i] == 0) {
-                    keyPressed[i] = 1;
+        for (i = 0; i < 24; i++) {
+            int scanCode = crocokeymap[i].scanCode;
 
-                    //      int retour = LoadObject("/Users/miguelvanhove/Downloads/diam20/Diamonds");
-                    // button_pressed(BUTTON_EVAL);
+            if (scanCode != LAST_BUTTON) {
+                if (input_state_cb(crocokeymap[i].port, RETRO_DEVICE_JOYPAD, 0, crocokeymap[i].index)) {
+                    if (keyPressed[i] == 0) {
+                        keyPressed[i] = 1;
 
-                    button_pressed(scanCode);
-                }
-            } else {
-                if (keyPressed[i] == 1) {
-                    keyPressed[i] = 0;
+                        fprintf(stderr,  " RETRO_DEVICE_JOYPAD %d %d\n", scanCode, i);
 
-                    button_released(scanCode);
+                        button_pressed(scanCode);
+                    }
+                } else {
+                    if (keyPressed[i] == 1) {
+                        keyPressed[i] = 0;
+
+                        button_released(scanCode);
+                    }
                 }
             }
         }
+
     }
 
+    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT)) {
+        keypad_pressed[BUTTON_A] = 2;
+        button_pressed(BUTTON_A);
+    }
+    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT)) {
+        keypad_pressed[BUTTON_F] = 2;
+        button_pressed(BUTTON_F);
+    }
+    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A)) {
+        keypad_pressed[BUTTON_A] = 2;
+        button_pressed(BUTTON_A);
+    }
+
+    for (i = 0; i < HANDLED_BUTTON; i++) {
+        if (keypad_pressed[i] > 0) {
+            keypad_pressed[i]--;
+            if (keypad_pressed[i] == 0) {
+                button_released(i);
+            }
+        }
+    }
 
 
     for (i = 0; i < RETROK_LAST; i++) {
@@ -460,70 +592,83 @@ void retro_run(void)
             if (state != Core_Key_Sate[i]) {
                 Core_Key_Sate[i] = state;
 
-                if ((scanCode == BUTTON_F) && (state == 1)) {
-                    if (fullscreen) {
-                        fullScreenLeave();
-                    } else {
-                        fullScreenEnter();
+                // if ((scanCode == BUTTON_F) && (state == 1) && (1 == 0)) {
+                //     if (fullscreen) {
+                //         fullScreenLeave();
+                //     } else {
+                //         fullScreenEnter();
+                //     }
+                // } else
+                if (scanCode == BUTTON_D) {
+                    if (state == 1) {
+                        fprintf(stderr,  " Load binary\n");
+                        fprintf(stderr,  " Flag %d\n", saturn.power_ctrl);
+
+                        int retour = oldLoadObject("/Users/miguelvanhove/Downloads/diam20a/DIAMONDS");
+
+                        // int retour = oldLoadObject("/Users/miguelvanhove/Downloads/xennon/XENNONGX.LIB");
 
 
                     }
+
+
+
+                    scanCode = HANDLED_BUTTON;
+                } else if ((scanCode == BUTTON_9) && (state == 1)) {
+                    fprintf(stderr,  " Btn 9 \n");
+
+                    saturn.PC = 0x0000;
+                    // on_event();
+                    scanCode = HANDLED_BUTTON;
+                } else if ((scanCode == BUTTON_8) && (state == 1)) {
+                    fprintf(stderr,  " Btn 8 \n");
+                    button_pressed(BUTTON_EVAL);
+                    scanCode = HANDLED_BUTTON;
+                } else if ((scanCode == BUTTON_7) && (state == 1)) {
+                    fprintf(stderr,  " Btn 7 \n");
+                    button_released(BUTTON_EVAL);
+                    scanCode = HANDLED_BUTTON;
                 }
+                // else if ((scanCode == BUTTON_F) && (state == 1)) {
+//                     fprintf(stderr,  " Btn f \n");
+//                     button_released(BUTTON_EVAL);
+//                 }
+// // }
 
+                if (scanCode != HANDLED_BUTTON) {
+                    if (state == 1) {
+                        fprintf(stderr,  " input_state_cb %d\n", scanCode);
 
-                else if ((scanCode == BUTTON_E) && (state == 1)) {
+                        button_pressed(scanCode);
+                    } else {
+                        fprintf(stderr,  " input_state_cb %d\n", scanCode);
 
-
-                fprintf(stderr,  " Load binary \n");
-
-                    // int retour = LoadObject("/Users/miguelvanhove/Downloads/diam20/Diamonds");
-                    // int retour = read_bin_file("/Users/miguelvanhove/Downloads/diam20a/DIAMONDS");
-
-                int retour = read_bin_file("/Users/miguelvanhove/Dropbox/temp/hp/beaubour.var");
-
-                }
-
-                else if ((scanCode == BUTTON_D) && (state == 1)) {
-
-
-                fprintf(stderr,  " Load binary (old) \n");
-
-                    // int retour = LoadObject("/Users/miguelvanhove/Downloads/diam20/Diamonds");
-                    int retour = LoadObject("/Users/miguelvanhove/Downloads/diam20a/DIAMONDS");
-                }
-
-// }
-                else if (state == 1) {
-                    button_pressed(scanCode);
-                } else {
-                    button_released(scanCode);
+                        button_released(scanCode);
+                    }
                 }
 
             }
         }
-    }
+    } /* retro_run */
 
-
-    int16_t mouse_x = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_X);
-    int16_t mouse_y = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_Y);
-    bool mouse_l    = input_state_cb(0, RETRO_DEVICE_MOUSE, 0, RETRO_DEVICE_ID_MOUSE_LEFT);
 
 
     if (mouse_x) {
-        fprintf(stderr, "Mouse X: %d\n", mouse_x);
+        // fprintf(stderr, "Mouse X: %d\n", mouse_x);
     }
     if (mouse_y) {
-        fprintf(stderr, "Mouse Y: %d\n", mouse_y);
+        // fprintf(stderr, "Mouse Y: %d\n", mouse_y);
     }
 
-    // fprintf(stderr, "Mouse left: %d,%d (%d)\n", mouse_x, mouse_y, mouse_l);
+// fprintf(stderr, "Mouse left: %d,%d (%d)\n", mouse_x, mouse_y, mouse_l);
 
+    int pointer_x = -1, pointer_y = -1;
 
     if (mouse_l != old_mouse_l) {
         old_mouse_l = mouse_l;
 
 
-        if (mouse_l) {
+        if (mouse_l) {      // touch down
             if (fullscreen) {
                 // fprintf(stderr, "Leave fullscreen\n");
 
@@ -533,28 +678,29 @@ void retro_run(void)
             } else {
                 // fullscreen=1;
 
-                int pointer_x = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
-                int pointer_y = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
-
                 fprintf(stderr,  "Pointer: (%04X, %04X).\n", pointer_x, pointer_y);
 
-                pointer_x = ((pointer_x + 0x7fff) * winW) / 65536;
-                pointer_y = ((pointer_y + 0x7fff) * winH) / 65536;
+                pointer_x = PXtoPOS(p_x);
+                pointer_y =  PYtoPOS(p_y);
 
                 fprintf(stderr,  "         (%6d, %6d) (%d,%d).\n", pointer_x, pointer_y, winW, winH);
 
-
                 if ((pointer_x >= 20) && (pointer_x <= 281) && (pointer_y >= 67) && (pointer_y <= 207)) {
                     fullScreenEnter();
+                } else {
+                    int n;
+
+                    for (n = 0; n < LAST_BUTTON + 1; n++) {
+                        if ( (pointer_x >= keyScrs[n].x) && (pointer_y >= keyScrs[n].y) && (pointer_x < keyScrs[n].x + keyScrs[n].w) && (pointer_y < keyScrs[n].y + keyScrs[n].h) ) {
+                            button_pressed(n);
+                            last_press = n;
+                        }
+                    }
                 }
 
-                // fprintf(stderr, "Go fullscreen\n");
-
-                // fullScreenEnter();
-
-
-
             }
+        } else { // touch up
+            button_released(last_press);
         }
 
     }
@@ -571,27 +717,27 @@ void retro_run(void)
 
     if (loadFile_flag != 0) {
         switch (loadFile_flag) {
-            case 420:
-                // button_released(BUTTON_EVAL);
-                // saturn.PC = 0x00000;
-                break;
-            case 240:
-                fprintf(stderr, "Load %s\n", file_path);
-                // int retour = LoadObject("/Users/miguelvanhove/Downloads/diam20/Diamonds");
-                int retour = LoadObject(file_path);
 
-                fprintf(stderr, "Retour: %d\n", retour);
+            case 300:
+                fprintf(stderr, "Load %s\n", file_path);
+                int retour = LoadObject(object_size, object);
+
+                fprintf(stderr, "loadfile 240 - Retour: %d\n", retour);
                 break;
-            case 200:
-                // button_pressed(BUTTON_ON);
+            case 160:
+                button_pressed(BUTTON_ENTER);
                 break;
             case 150:
-                // button_released(BUTTON_ON);
+                button_released(BUTTON_ENTER);
                 break;
             case 80:
+                fprintf(stderr, "loadFile_flag 80\n");
+
                 button_pressed(BUTTON_EVAL);
                 break;
             case 10:
+                fprintf(stderr, "loadFile_flag 10\n");
+
                 button_released(BUTTON_EVAL);
                 break;
         } /* switch */
@@ -602,77 +748,138 @@ void retro_run(void)
 
     emulate_frame();
 
-    // fprintf(stderr, "Frame: PC:%d\n", (int)saturn.PC);
+// fprintf(stderr, "Frame: PC:%d\n", (int)saturn.PC);
 
-    // fprintf(stderr, "Frame: update:%ld, info:%d, lines:%d, offset:%d\n", disp.display_update, disp.disp_info, disp.lines, disp.offset);
+// fprintf(stderr, "Frame: update:%ld, info:%d, lines:%d, offset:%d\n", disp.display_update, disp.disp_info, disp.lines, disp.offset);
 
     disp.display_update = 0; // Necessaire ????
 
-    // disp.disp_image->data[rand()%(height*NIBBLES_PER_ROW)]=rand()%255;
+// disp.disp_image->data[rand()%(height*NIBBLES_PER_ROW)]=rand()%255;
+
+
+    if (!fullscreen) {
+
+        pointer_x = PXtoPOS(p_x);
+        pointer_y =  PYtoPOS(p_y);
+
+        if (px != -1) {
+            restore_background_cross(pixels, px, py);
+        }
+    }
+
 
     if (zoom > 1) {
 
-        int x, y;
-        int npos = 0;
+        if (1 == 1) {
+            int x, y;
+            int spos = 0;
+            int npos = 0;
 
-        u8 *data;
-        int y0;
+            // int spos0 = 20 + winW * 65;
 
-        int zoomX, zoomY;
+            u8 *data;
+            int y0;
 
-        int yb = disp.lines + 1;
+            int yb = disp.lines + 1;
 
-        int spos0 = borderY * winW + borderX;
+            for (y = 0; y < height; y++) {
 
-        for (y = 0; y < height; y++) {
-
-            if (y < yb) {
-                y0 = 0;
-                data = (u8 *)disp.disp_image->data;
-            } else {
-                y0 = yb;
-                data = (u8 *)disp.menu_image->data;
-            }
-
-            for (zoomY = 0; zoomY < zoom; zoomY++) {
+                if (y < yb) {
+                    y0 = 0;
+                    data = (u8 *)disp.disp_image->data;
+                } else {
+                    y0 = yb;
+                    data = (u8 *)disp.menu_image->data;
+                }
 
                 npos = (y - y0) * NIBBLES_PER_ROW;
+                spos = y * winW * 2 + 67 * winW + 18;
 
-                for (x = 0; x < NIBBLES_PER_ROW - 1; x++) {
+                for (x = 0; x < NIBBLES_PER_ROW; x++) {
                     u8 nibble = data[npos];
+
                     int z;
+                    int tz = (x == NIBBLES_PER_ROW - 1) ? 3 : 0;
 
-                    if (x == NIBBLES_PER_ROW - 2) {
-                        for (z = 0; z < 4; z++) {
-                            for (zoomX = 0; zoomX < zoom; zoomX++) {
+                    for (z = tz; z < 4; z++) {
+                        pixels[spos + (3 - z) * 2] = ((nibble & 1) == 1) ? RGB15(0, 0, 0) : bgcolor;
+                        pixels[spos + 1 + (3 - z) * 2] = ((nibble & 1) == 1) ? RGB15(0, 0, 0) : bgcolor;
 
-                                if ((3 - z) < 2) {
-                                    pixels[spos0 + x * 4 * zoom + (3 - z) * zoom + zoomX] = ((nibble & 1) == 1) ? RGB15(0, 0, 0) : bgcolor;
-                                }
-                            }
+                        pixels[spos + (3 - z) * 2 + winW] = ((nibble & 1) == 1) ? RGB15(0, 0, 0) : bgcolor;
+                        pixels[spos + 1 + (3 - z) * 2 + winW] = ((nibble & 1) == 1) ? RGB15(0, 0, 0) : bgcolor;
 
-                            nibble = nibble / 4;
-                        }
-                    } else {
-                        for (z = 0; z < 4; z++) {
-                            for (zoomX = 0; zoomX < zoom; zoomX++) {
-                                pixels[spos0 + x * 4 * zoom + (3 - z) * zoom + zoomX] = ((nibble & 1) == 1) ? RGB15(0, 0, 0) : bgcolor;
-                            }
 
-                            nibble = nibble / 4;
-                        }
+                        nibble = nibble / 4;
                     }
-
+                    spos += 8;
 
                     npos++;
                 }
-                spos0 += winW;
 
             }
+        } else {
+
+            int x, y;
+            int npos = 0;
+
+            u8 *data;
+            int y0;
+
+            int zoomX, zoomY;
+
+            int yb = disp.lines + 1;
+
+            int spos0 = borderY * winW + borderX;
+
+            for (y = 0; y < height; y++) {
+
+                if (y < yb) {
+                    y0 = 0;
+                    data = (u8 *)disp.disp_image->data;
+                } else {
+                    y0 = yb;
+                    data = (u8 *)disp.menu_image->data;
+                }
+
+                for (zoomY = 0; zoomY < zoom; zoomY++) {
+
+                    npos = (y - y0) * NIBBLES_PER_ROW;
+
+                    for (x = 0; x < NIBBLES_PER_ROW - 1; x++) {
+                        u8 nibble = data[npos];
+                        int z;
+
+                        if (x == NIBBLES_PER_ROW - 2) {
+                            for (z = 0; z < 4; z++) {
+                                for (zoomX = 0; zoomX < zoom; zoomX++) {
+
+                                    if ((3 - z) < 2) {
+                                        pixels[spos0 + x * 4 * zoom + (3 - z) * zoom + zoomX] = ((nibble & 1) == 1) ? RGB15(0, 0, 0) : bgcolor;
+                                    }
+                                }
+
+                                nibble = nibble / 4;
+                            }
+                        } else {
+                            for (z = 0; z < 4; z++) {
+                                for (zoomX = 0; zoomX < zoom; zoomX++) {
+                                    pixels[spos0 + x * 4 * zoom + (3 - z) * zoom + zoomX] = ((nibble & 1) == 1) ? RGB15(0, 0, 0) : bgcolor;
+                                }
+
+                                nibble = nibble / 4;
+                            }
+                        }
 
 
+                        npos++;
+                    }
+                    spos0 += winW;
+
+                }
+
+
+            }
         }
-
 
     } else {
 
@@ -751,6 +958,26 @@ void retro_run(void)
  *  pixels[pos]=rand();
  */
 
+    if (!fullscreen) {
+
+
+        if ((px != pointer_x) || (py != pointer_y)) {
+            fprintf(stderr,  "Pointer: (%d, %d) (%x-%x) - %d.\n", pointer_x, pointer_y, p_x, p_y, 0);
+            fprintf(stderr,  "Mouse: (%d, %d) - %d,%d.\n", mouse_x, mouse_y, width, winW);
+        }
+
+        px = pointer_x;
+        py = pointer_y;
+
+        if ((pointer_x >= 20) && (pointer_x <= 281) && (pointer_y >= 67) && (pointer_y <= 207)) {
+            draw_zoomcursor(pixels, px, py);
+        } else {
+            draw_cross(pixels, px, py);
+        }
+
+
+    }
+
     video_cb(pixels, winW, winH, winW * 2);
 
 
@@ -774,16 +1001,16 @@ bool retro_load_game(const struct retro_game_info *info)
 {
     struct retro_frame_time_callback frame_cb;
     struct retro_input_descriptor desc[] = {
-        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left"  },
-        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,     "Up"    },
-        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,   "Down"  },
-        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT,  "Right" },
-        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,  "Start" },
-        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "Pause" },
+        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,   "Left"},
+        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,     "Up"},
+        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,   "Down"},
+        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT,  "Right"},
+        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START,  "Start"},
+        {0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT, "Pause"},
         {0},
     };
 
-    log_cb(RETRO_LOG_INFO, "begin of load games %s\n", info);
+    log_cb(RETRO_LOG_INFO, "retro_load_game\n");
 
     environ_cb(RETRO_ENVIRONMENT_SET_INPUT_DESCRIPTORS, desc);
 
@@ -797,23 +1024,65 @@ bool retro_load_game(const struct retro_game_info *info)
         return 0;
     }
 
-    log_cb(RETRO_LOG_INFO, "begin of load gamer s\n");
 
 
     if (info != NULL) {
+        log_cb(RETRO_LOG_INFO, "begin of load gamer s\n");
 
         strcpy(file_path, info->path);
         loadGame();
+
+        log_cb(RETRO_LOG_INFO, "end of load gamer s\n");
     }
 
 
-    log_cb(RETRO_LOG_INFO, "end of load gamer s\n");
 
     return true;
 } /* retro_load_game */
 
+char load84PH(long dsk_size, u8 *dsk)
+{
+    log_cb(RETRO_LOG_INFO, "load84PH\n");
+
+    snapshotLength = (u32)dsk_size;
+
+    snapshot = (u8 *)malloc(snapshotLength);
+    memcpy(snapshot, dsk, snapshotLength);
+
+    if (snapshot != NULL) {
+
+        if (snapshot != NULL) {
+            LireSnapshotMem(snapshot);
+        }
+        return true;
+    }
+
+    return false;
+}
+
+
+char loadHPHP48(long dsk_size, u8 *dsk)
+{
+    log_cb(RETRO_LOG_INFO, "loadHPHP48\n");
+
+    fprintf(stderr, "loadFile_flag 600: %s\n", file_path);
+
+    object = (char *)malloc(dsk_size);
+    memcpy(object, dsk, dsk_size);
+    object_size = dsk_size;
+
+    loadFile_flag = 700;
+
+    log_cb(RETRO_LOG_INFO, "send file %s to Stack\n", file_path);
+
+    return true;
+}
+
+
 bool loadGame(void)
 {
+    log_cb(RETRO_LOG_INFO, "loadGame\n");
+
     FILE *fic;
 
     u8 *dsk;
@@ -843,25 +1112,60 @@ bool loadGame(void)
     memcpy(header, dsk, 32);
 
     if (!memcmp(header, "84PH", 4)) {
+        return load84PH(dsk_size, dsk);
+    }
 
-        snapshotLength = (u32)dsk_size;
+    if (!memcmp(header, "HPHP48", 6)) {
+        return loadHPHP48(dsk_size, dsk);
+    }
 
-        snapshot = (u8 *)malloc(snapshotLength);
-        memcpy(snapshot, dsk, snapshotLength);
+    if (!memcmp(header, "PK", 2)) {
+        log_cb(RETRO_LOG_INFO, "loadGame zip\n");
 
-        if (snapshot != NULL) {
-            loadSnapshot();
-            return true;
+        mz_zip_archive zip_archive;
+        memset(&zip_archive, 0, sizeof(zip_archive));
+
+        if (mz_zip_reader_init_mem(&zip_archive, dsk, dsk_size, 0) == MZ_TRUE) {
+            int i;
+            // char isKcr = 0;
+
+            for (i = 0; i < (int)mz_zip_reader_get_num_files(&zip_archive); i++) {
+                mz_zip_archive_file_stat file_stat;
+                if (!mz_zip_reader_file_stat(&zip_archive, i, &file_stat)) {
+                    mz_zip_reader_end(&zip_archive);
+                    break;
+                }
+
+                if (!strcasecmp(file_stat.m_filename, "settings.ini")) {
+                    // isKcr = 1;
+                }
+
+                log_cb(RETRO_LOG_INFO, "dir: %s\n", file_stat.m_filename);
+
+                log_cb(RETRO_LOG_INFO, "usefile");
+
+                unsigned char *undsk = (unsigned char *)malloc(file_stat.m_uncomp_size);
+                mz_zip_reader_extract_to_mem(&zip_archive, 0, undsk, (unsigned int)file_stat.m_uncomp_size, 0);
+
+                log_cb(RETRO_LOG_INFO, "header: %s\n", undsk);
+
+
+                if (!memcmp(undsk, "84PH", 4)) {
+                    return load84PH(file_stat.m_uncomp_size, undsk);
+                }
+
+                if (!memcmp(undsk, "HPHP48", 6)) {
+                    return loadHPHP48(file_stat.m_uncomp_size, undsk);
+                }
+
+
+                // ddlog(core, 2, "Filename: \"%s\", Comment: \"%s\", Uncompressed size: %u, Compressed size: %u, Is Dir: %u\n", file_stat.m_filename, file_stat.m_comment, (unsigned int)file_stat.m_uncomp_size, (unsigned int)file_stat.m_comp_size, mz_zip_reader_is_file_a_directory(&zip_archive, i));
+            }
         }
     }
 
 // Send to Stack
 
-    fprintf(stderr, "Load %s\n", file_path);
-
-    loadFile_flag = 600;
-
-    log_cb(RETRO_LOG_INFO, "send file %s to Stack\n", file_path);
 
 
     return true;
@@ -943,4 +1247,125 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
     (void)index;
     (void)enabled;
     (void)code;
+}
+
+
+static const char *cross[20] = {
+    "X                               ",
+    "XX                              ",
+    "X.X                             ",
+    "X..X                            ",
+    "X...X                           ",
+    "X....X                          ",
+    "X.....X                         ",
+    "X......X                        ",
+    "X.......X                       ",
+    "X........X                      ",
+    "X.....XXXXX                     ",
+    "X..X..X                         ",
+    "X.X X..X                        ",
+    "XX  X..X                        ",
+    "X    X..X                       ",
+    "     X..X                       ",
+    "      X..X                      ",
+    "      X..X                      ",
+    "       XX                       ",
+    "                                ",
+};
+
+static const char *zoomcursor[20] = {
+    "XXXXXX      XXXXXX              ",
+    "X....X      X....X              ",
+    "X.XXXX      XXXX.X              ",
+    "X.X            X.X              ",
+    "X.X            X.X              ",
+    "X.X            X.X              ",
+    "XXX            XXX              ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "XXX            XXX              ",
+    "X.X            X.X              ",
+    "X.X            X.X              ",
+    "X.X            X.X              ",
+    "X.XXXX      XXXX.X              ",
+    "X....X      X....X              ",
+    "XXXXXX      XXXXXX              ",
+};
+
+void DrawPointBmpRestore(unsigned short int *buffer, int x, int y, int rwidth, int rheight)
+{
+    int idx;
+
+    idx = x + y * rwidth;
+    if ((idx >= 0) && (x < rwidth) && (y < rheight))
+        buffer[idx] = background[idx];
+}
+
+void DrawPointBmp(unsigned short int *buffer, int x, int y, unsigned short int color, int rwidth, int rheight)
+{
+    int idx;
+
+    idx = x + y * rwidth;
+    if ((idx >= 0) && (x < rwidth) && (y < rheight))
+        buffer[idx] = color;
+}
+
+void draw_zoomcursor(unsigned short int *surface, int x, int y)
+{
+
+    int i, j, idx;
+    int dx = 32, dy = 20;
+
+    unsigned short int col = 0xffff;
+
+    int w = winW;
+    int h = winH;
+
+    for (j = y; j < y + dy; j++) {
+        idx = 0;
+        for (i = x; i < x + dx; i++) {
+
+            if (zoomcursor[j - y][idx] == '.') DrawPointBmp(surface, i, j, col, w, h);
+            else if (zoomcursor[j - y][idx] == 'X') DrawPointBmp(surface, i, j, 0, w, h);
+            idx++;
+        }
+    }
+}
+
+void draw_cross(unsigned short int *surface, int x, int y)
+{
+
+    int i, j, idx;
+    int dx = 32, dy = 20;
+
+    unsigned short int col = 0xffff;
+
+    int w = winW;
+    int h = winH;
+
+    for (j = y; j < y + dy; j++) {
+        idx = 0;
+        for (i = x; i < x + dx; i++) {
+
+            if (cross[j - y][idx] == '.') DrawPointBmp(surface, i, j, col, w, h);
+            else if (cross[j - y][idx] == 'X') DrawPointBmp(surface, i, j, 0, w, h);
+            idx++;
+        }
+    }
+}
+
+void restore_background_cross(unsigned short int *surface, int x, int y)
+{
+    int i, j;
+    int dx = 32, dy = 20;
+
+    for (j = y; j < y + dy; j++) {
+        for (i = x; i < x + dx; i++) {
+            DrawPointBmpRestore(surface, i, j, winW, winH);
+        }
+    }
 }

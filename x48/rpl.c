@@ -59,39 +59,39 @@ struct objfunc {
     word_20 prolog;
     char *(*func)__ProtoType__((word_20 * addr, char *string));
 } objects[] = {
-    {"System Binary", 0,               DOBINT,                  dec_bin_int                      },
-    {"Real",          0,               DOREAL,                  dec_real                         },
-    {"Long Real",     0,               DOEREL,                  dec_long_real                    },
-    {"Complex",       0,               DOCMP,                   dec_complex                      },
-    {"Long Complex",  0,               DOECMP,                  dec_long_complex                 },
-    {"Character",     0,               DOCHAR,                  dec_char                         },
-    {"Array",         0,               DOARRY,                  dec_array                        },
-    {"Linked Array",  0,               DOLNKARRY,               dec_lnk_array                    },
-    {"String",        2,               DOCSTR,                  dec_string                       },
-    {"Hex String",    1,               DOHSTR,                  dec_hex_string                   },
-    {"List",          0,               DOLIST,                  dec_list                         },
-    {"Directory",     0,               DORRP,                   skip_ob                          },
-    {"Symbolic",      0,               DOSYMB,                  dec_symb                         },
-    {"Unit",          0,               DOEXT,                   dec_unit                         },
-    {"Tagged",        0,               DOTAG,                   skip_ob                          },
-    {"Graphic",       0,               DOGROB,                  skip_ob                          },
-    {"Library",       0,               DOLIB,                   dec_library                      },
-    {"Backup",        0,               DOBAK,                   skip_ob                          },
-    {"Library Data",  0,               DOEXT0,                  dec_library_data                 },
-    {"ACPTR",         0,               DOACPTR,                 dec_acptr                        },
-    {"External 2",    0,               DOEXT2,                  skip_ob                          },
-    {"External 3",    0,               DOEXT3,                  skip_ob                          },
-    {"External 4",    0,               DOEXT4,                  skip_ob                          },
-    {"Program",       0,               DOCOL,                   dec_prog                         },
-    {"Code",          1,               DOCODE,                  dec_code                         },
-    {"Global Ident",  0,               DOIDNT,                  dec_global_ident                 },
-    {"Local Ident",   0,               DOLAM,                   dec_local_ident                  },
-    {"XLib Name",     0,               DOROMP,                  dec_xlib_name                    },
-    {"*",             0,               UM_MUL,                  dec_unit_op                      },
-    {"/",             0,               UM_DIV,                  dec_unit_op                      },
-    {"^",             0,               UM_POW,                  dec_unit_op                      },
-    {" ",             0,               UM_PRE,                  dec_unit_op                      },
-    {"_",             0,               UM_END,                  dec_unit_op                      },
+    {"System Binary", 0,               DOBINT,                  dec_bin_int},
+    {"Real",          0,               DOREAL,                  dec_real},
+    {"Long Real",     0,               DOEREL,                  dec_long_real},
+    {"Complex",       0,               DOCMP,                   dec_complex},
+    {"Long Complex",  0,               DOECMP,                  dec_long_complex},
+    {"Character",     0,               DOCHAR,                  dec_char},
+    {"Array",         0,               DOARRY,                  dec_array},
+    {"Linked Array",  0,               DOLNKARRY,               dec_lnk_array},
+    {"String",        2,               DOCSTR,                  dec_string},
+    {"Hex String",    1,               DOHSTR,                  dec_hex_string},
+    {"List",          0,               DOLIST,                  dec_list},
+    {"Directory",     0,               DORRP,                   skip_ob},
+    {"Symbolic",      0,               DOSYMB,                  dec_symb},
+    {"Unit",          0,               DOEXT,                   dec_unit},
+    {"Tagged",        0,               DOTAG,                   skip_ob},
+    {"Graphic",       0,               DOGROB,                  skip_ob},
+    {"Library",       0,               DOLIB,                   dec_library},
+    {"Backup",        0,               DOBAK,                   skip_ob},
+    {"Library Data",  0,               DOEXT0,                  dec_library_data},
+    {"ACPTR",         0,               DOACPTR,                 dec_acptr},
+    {"External 2",    0,               DOEXT2,                  skip_ob},
+    {"External 3",    0,               DOEXT3,                  skip_ob},
+    {"External 4",    0,               DOEXT4,                  skip_ob},
+    {"Program",       0,               DOCOL,                   dec_prog},
+    {"Code",          1,               DOCODE,                  dec_code},
+    {"Global Ident",  0,               DOIDNT,                  dec_global_ident},
+    {"Local Ident",   0,               DOLAM,                   dec_local_ident},
+    {"XLib Name",     0,               DOROMP,                  dec_xlib_name},
+    {"*",             0,               UM_MUL,                  dec_unit_op},
+    {"/",             0,               UM_DIV,                  dec_unit_op},
+    {"^",             0,               UM_POW,                  dec_unit_op},
+    {" ",             0,               UM_PRE,                  dec_unit_op},
+    {"_",             0,               UM_END,                  dec_unit_op},
     {0,               0,               0}
 };
 
@@ -100,7 +100,7 @@ char *
 skip_ob(word_20 *addr, char *string)
 #else
 skip_ob(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -149,7 +149,7 @@ char *
 dec_bin_int(word_20 *addr, char *string)
 #else
 dec_bin_int(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -168,7 +168,7 @@ char *
 real_number(word_20 *addr, char *string, int ml, int xl)
 #else
 real_number(addr, string, ml, xl)
-word_20 * addr;
+word_20 *addr;
 char *string;
 int ml;
 int xl;
@@ -278,7 +278,7 @@ char *
 dec_real(word_20 *addr, char *string)
 #else
 dec_real(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -290,7 +290,7 @@ char *
 dec_long_real(word_20 *addr, char *string)
 #else
 dec_long_real(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -302,7 +302,7 @@ char *
 dec_complex(word_20 *addr, char *string)
 #else
 dec_complex(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -322,7 +322,7 @@ char *
 dec_long_complex(word_20 *addr, char *string)
 #else
 dec_long_complex(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -342,7 +342,7 @@ char *
 dec_string(word_20 *addr, char *string)
 #else
 dec_string(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -445,7 +445,7 @@ char *
 dec_list(word_20 *addr, char *string)
 #else
 dec_list(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -476,7 +476,7 @@ char *
 dec_symb(word_20 *addr, char *string)
 #else
 dec_symb(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -505,7 +505,7 @@ char *
 dec_unit(word_20 *addr, char *string)
 #else
 dec_unit(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -530,7 +530,7 @@ char *
 dec_unit_op(word_20 *addr, char *string)
 #else
 dec_unit_op(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -566,7 +566,7 @@ char *
 dec_library(word_20 *addr, char *string)
 #else
 dec_library(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -606,7 +606,7 @@ char *
 dec_library_data(word_20 *addr, char *string)
 #else
 dec_library_data(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -629,7 +629,7 @@ char *
 dec_acptr(word_20 *addr, char *string)
 #else
 dec_acptr(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -666,7 +666,7 @@ char *
 dec_prog(word_20 *addr, char *string)
 #else
 dec_prog(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -691,7 +691,7 @@ char *
 dec_code(word_20 *addr, char *string)
 #else
 dec_code(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -718,7 +718,7 @@ char *
 dec_local_ident(word_20 *addr, char *string)
 #else
 dec_local_ident(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -758,7 +758,7 @@ char *
 dec_global_ident(word_20 *addr, char *string)
 #else
 dec_global_ident(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -1063,7 +1063,7 @@ char *
 dec_array(word_20 *addr, char *string)
 #else
 dec_array(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -1075,7 +1075,7 @@ char *
 dec_lnk_array(word_20 *addr, char *string)
 #else
 dec_lnk_array(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -1087,7 +1087,7 @@ char *
 dec_char(word_20 *addr, char *string)
 #else
 dec_char(addr, string)
-word_20 * addr;
+word_20 *addr;
 char *string;
 #endif
 {
@@ -1403,11 +1403,87 @@ char * decode_rpl_obj(word_20 addr, char *buf)
     return p;
 } /* decode_rpl_obj */
 
+
 /*********************************************************************
 * LoadObject: load an HP48 object onto the stack                    *
 *********************************************************************/
-int LoadObject(char *filename)
+int LoadObject(int objectSize, char *object)
 {
+    long size, i, j;
+    word_20 len, addr;
+    int byte = 0;
+    unsigned char *buf;
+
+    size = objectSize - 8;
+
+    /* save room for file */
+    if ( !(buf = (unsigned char *)malloc(size * 2)) ) {
+        return( -5 );       /* ERROR: can't save enough room */
+    }
+    /* copy file into buffer */
+    for ( i = 0, j = 0; i < size; i++ ) {
+        byte = object[8 + i];
+
+        buf[j++] = (char)byte & 0x0F;
+        buf[j++] = (char)(byte >> 4) & 0x0F;
+    }
+
+    /* introduce file into HP48 memory */
+    len = RPL_ObjectSize_2(buf);
+    if ( !(addr = RPL_CreateTemp(len)) ) {
+        fprintf(stderr, "Object address = 0x%5lX\n", len);
+        free(buf);
+        return( -7 );    /* ERROR: HP48 has not enough memory */
+    }
+    for ( i = 0; i < len; i++ ) {
+        write_nibble(addr + i, (int)buf[i]);
+    }
+
+    // fprintf(stderr, "Lenght %d,%d\n", len, size);
+    // fprintf(stderr, "Addr %d\n", addr);
+
+
+    RPL_Push(addr);
+
+    free(buf);
+
+    // on_event();
+    //
+    fprintf(stderr, "LoadObject: push %lx\n", addr);
+
+
+    return 0;
+} /* LoadObject */
+
+/*********************************************************************
+* LoadObject: load an HP48 object onto the stack                    *
+*********************************************************************/
+int oldLoadObject(char *filename)
+{
+
+    {u8 *dsk;
+     long dsk_size;
+
+     FILE *fic = fopen(filename, "rb");
+     if (fic == NULL) {
+         return 0;
+     }
+     fseek(fic, 0, SEEK_END);
+     dsk_size = ftell(fic);
+     fseek(fic, 0, SEEK_SET);
+
+     dsk = (u8 *)malloc(dsk_size);
+     if (dsk == NULL) {
+         return 0;
+     }
+     fread(dsk, 1, dsk_size, fic);
+     fclose(fic);
+
+     memcpy(saturn.ram + 0x28a0 + 5, dsk + 8, dsk_size - 8);
+     return 0;}
+
+
+
     FILE *f;
     struct stat st;
     long size, i, j;
@@ -1465,7 +1541,7 @@ int LoadObject(char *filename)
 
     // on_event();
     //
-    fprintf(stderr, "LoadObject: push %ld\n", addr);
+    fprintf(stderr, "LoadObject: push %lx\n", addr);
 
 
     return 0;
@@ -1620,21 +1696,21 @@ word_20 RPL_ObjectSize_2(unsigned char *d)
 
     prolog = read_nibbles_2(d, 5);
 
-    fprintf(stderr, "Bytes:\n");
-    int oo;
-    for (oo = 0; oo < 32; oo++) {
-        fprintf(stderr, "%02X ", d[oo]);
-        if ((d[oo] > 32) && (d[oo] < 128)) {
-            fprintf(stderr, "(%c) ", d[oo]);
-        } else {
-            fprintf(stderr, "(.) ");
-        }
-        if (oo == 15) {
-            fprintf(stderr, "\n");
-        }
-    }
+    // fprintf(stderr, "Bytes:\n");
+    // int oo;
+    // for (oo = 0; oo < 32; oo++) {
+    //     fprintf(stderr, "%02X ", d[oo]);
+    //     if ((d[oo] > 32) && (d[oo] < 128)) {
+    //         fprintf(stderr, "(%c) ", d[oo]);
+    //     } else {
+    //         fprintf(stderr, "(.) ");
+    //     }
+    //     if (oo == 15) {
+    //         fprintf(stderr, "\n");
+    //     }
+    // }
 
-    fprintf(stderr, "\nProlog: %ld\n", prolog);
+    // fprintf(stderr, "\nProlog: %ld\n", prolog);
 
 
     switch ( prolog ) {
@@ -1735,13 +1811,13 @@ long read_nibbles_2(unsigned char *addr, int len)
     addr += len;
     while ( len-- > 0 ) {
 
-        fprintf(stderr, "%02X ", *addr);
+        // fprintf(stderr, "%02X ", *addr);
 
         addr--;
         val = (val << 4) | (*addr);
     }
 
-    fprintf(stderr, "\n");
+    // fprintf(stderr, "\n");
 
 
     return val;
@@ -1768,7 +1844,7 @@ int read_bin_file(char *filename)
         return 0;
     }
 
-    bin_size   = st.st_size;
+    bin_size = st.st_size;
     bin_buffer = (unsigned char *)malloc(bin_size * 2);
 
     if (fread(bin_buffer + bin_size, 1, (size_t)bin_size, fp) != bin_size) {
@@ -1796,8 +1872,8 @@ int read_bin_file(char *filename)
 
 
     if (bBinary) { // load as binary
-        bin_size    = RPL_ObjectSize_2(bin_buffer + 16);
-        dwAddress   = RPL_CreateTemp(bin_size);
+        bin_size = RPL_ObjectSize_2(bin_buffer + 16);
+        dwAddress = RPL_CreateTemp(bin_size);
         if (dwAddress == 0) return 0;
 
         store_n(dwAddress, bin_buffer + 16, bin_size);

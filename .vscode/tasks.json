@@ -1,0 +1,66 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558 
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "SDCC - make",
+            "command": "make",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": {
+                "owner": "base",
+                "fileLocation": [
+                    "relative",
+                    "${workspaceRoot}/src"
+                ],
+                "pattern": {
+                    "regexp": "^(.*):(\\d+):\\s+(warning|error|syntax error)[^:]*:\\s+(.*)$",
+                    "file": 1,
+                    "line": 2,
+                    "severity": 3,
+                    "message": 4
+                }
+            }
+        },
+        {
+            "type": "process",
+            "label": "SDCC - Retro Virtual Machine - old",
+            "command": "./rvm.sh",
+        },
+        {
+            "type": "process",
+            "label": "SDCC - Retro Virtual Machine",
+            "command": "/Applications/RetroArch.app/Contents/MacOS/RetroArch",
+            "args": [
+                "--libretro=x48_libretro.dylib"
+            ]
+        },
+        {
+            "type": "process",
+            "label": "SDCC - Retro Virtual Machine - croco",
+            "command": "open",
+            "args": [
+                "-a",
+                "/Users/miguelvanhove/Dropbox/Sources/rg350/crocods/build/crocods_macosx",
+                "--args",
+                "-w",
+                "${workspaceRoot}/brixen.dsk",
+                "-c",
+                "run\"main\"\n"
+            ]
+        },
+        {
+            "type": "shell",
+            "label": "SDCC - clean",
+            "command": "make clean"
+        }
+    ]
+}

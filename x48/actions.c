@@ -550,10 +550,14 @@ get_identification()
     return 0;
 }
 
-static int waitLoad = 50;
+// static int waitLoad = 50;
 
 void do_shutdown(void)
 {
+    return;
+    
+    // fprintf(stderr, "do_shutdown\n");
+
     int wake, alarms;
     t1_t2_ticks ticks;
 
@@ -610,11 +614,6 @@ void do_shutdown(void)
 
             fprintf(stderr, "hp48_check_load_prog_file\n");
 
-            if (waitLoad == 1) {
-                int retour = read_bin_file("/Users/miguelvanhove/Downloads/diam20a/DIAMONDS");
-            }
-
-
             interrupt_called = 0;
             if (GetEvent()) {
                 if (interrupt_called)
@@ -654,11 +653,11 @@ void do_shutdown(void)
             alarms++;
         }
 
-        if (waitLoad == 0) {
-           wake = 1; // REDBUG HACK TO REMOVE
-        } else {
-            waitLoad--;
-        }
+        // if (waitLoad == 0) {
+        //     wake = 1; // REDBUG HACK TO REMOVE
+        // } else {
+        //     waitLoad--;
+        // }
 
         // if (enter_debugger)
         //   {
@@ -823,7 +822,7 @@ void
 load_addr(word_20 *dat, long addr, int n)
 #else
 load_addr(dat, addr, n)
-word_20 * dat;
+word_20 *dat;
 long addr;
 int n;
 #endif
@@ -938,7 +937,7 @@ void
 add_address(word_20 *dat, int add)
 #else
 add_address(dat, add)
-word_20 * dat;
+word_20 *dat;
 int add;
 #endif
 {

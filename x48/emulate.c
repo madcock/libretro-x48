@@ -2499,7 +2499,7 @@ void emulate_frame(void)
         }
 
         max++;
-        if (max == 3000) break;
+        if (max == 1000) break;
 
 
     } while (1);
@@ -2558,16 +2558,8 @@ int emulate(void)
 
 /* We need to throttle the speed here. */
 
-        if (schedule_event < 0) {
-// puts("bug");
-//  schedule_event = 0;
-        }
         if (schedule_event-- <= 0) {
-            // fprintf(stderr, "%s(%d) [%s]: Before schedule\n", __func__, __LINE__, __FILE__);
-
             schedule();
-            // fprintf(stderr, "%s(%d) [%s]: After schedule\n", __func__, __LINE__, __FILE__);
-
         }
 
         max++;
