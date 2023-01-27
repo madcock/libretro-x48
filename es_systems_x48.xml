@@ -1,0 +1,9 @@
+    <system>
+        <name>hp48</name>
+        <fullname>HP 48</fullname>
+        <path>%ROMPATH%/hp48</path>
+        <extension>.k48 .K48 .sta .STA</extension>
+        <command label="x48">%EMULATOR_RETROARCH% -L %CORE_RETROARCH%/x48_libretro.dylib %ROM%</command>
+        <platform>hp48</platform>
+        <theme>hp48</theme>
+    </system>

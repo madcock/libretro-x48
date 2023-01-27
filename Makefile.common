@@ -1,0 +1,4 @@
+SOURCES_C := $(wildcard $(CORE_DIR)/x48/*.c) \
+    $(wildcard $(CORE_DIR)/zip/*.c) \
+    $(wildcard $(CORE_DIR)/zip/zlib/*.c) \
+    $(CORE_DIR)/libretro.c

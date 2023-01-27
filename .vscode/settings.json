@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "*.xtpl": "html",
+        "*.asm": "pasmo",
+        "*.s": "pasmo",
+        "plateform.h": "c"
+    }
+}
