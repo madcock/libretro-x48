@@ -645,7 +645,9 @@ void do_shutdown(void)
 
             if (wake == 0) {
                 interrupt_called = 0;
+#if !defined(SF2000)
                 receive_char();
+#endif
                 if (interrupt_called)
                     wake = 1;
             }

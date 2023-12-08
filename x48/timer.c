@@ -60,6 +60,21 @@ extern int gettimeofday __ProtoType__((struct timeval *tp));
 extern int gettimeofday __ProtoType__((struct timeval *, struct timezone *));
 #endif
 
+#if defined(SF2000)
+int gettimeofday(struct timeval *tv, void *tz)
+{
+	if (tv == NULL)
+		return -1;
+
+	uint32_t msec = os_get_tick_count();
+
+	tv->tv_sec = msec / 1000;
+	tv->tv_usec = (msec % 1000) * 1000;
+
+	return 0;
+}
+#endif
+
 typedef struct x48_timer_t {
   word_1  run;
   word_64 start;
@@ -139,7 +154,11 @@ void set_accesstime(void)
   if( ltm->tm_isdst )
     systime_offset -= 3600;
 #else
+#if defined(SF2000)
+  systime_offset -= 3600;
+#else
   systime_offset = -ltm->tm_gmtoff;
+#endif
 #endif
 
 #ifdef SOLARIS

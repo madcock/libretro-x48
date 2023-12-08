@@ -2276,7 +2276,7 @@ inline void schedule(void)
             if (sched_display < schedule_event) schedule_event = sched_display;
         }
     }
-
+#if !defined(SF2000)
     if ((sched_receive -= steps) <= 0) {
         sched_receive = SCHED_RECEIVE;
         if ((saturn.rcs & 0x01) == 0) {
@@ -2284,7 +2284,7 @@ inline void schedule(void)
         }
     }
     if (sched_receive < schedule_event) schedule_event = sched_receive;
-
+#endif
     // fprintf(stderr, "next receive: %ld, event: %ld\n",    sched_receive, schedule_event);
 
 

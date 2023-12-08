@@ -268,10 +268,12 @@ extern int		exit_emulator __ProtoType__((void));
 extern int		init_emulator __ProtoType__((void));
 extern void		init_active_stuff __ProtoType__((void));
 
+#if !defined(SF2000)
 extern int		serial_init __ProtoType__((void));
 extern void		serial_baud __ProtoType__((int baud));
 extern void		transmit_char __ProtoType__((void));
 extern void		receive_char __ProtoType__((void));
+#endif
 
 extern void		do_kbd_int  __ProtoType__((void));
 extern void		do_interupt __ProtoType__((void));

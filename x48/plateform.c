@@ -205,8 +205,8 @@ void signal_handler(int sig)
 
 void init_plateform(void)
 {
+#if !defined(SF2000)
     fprintf(stderr, "init_plateform\n");
-
     int i;
     char *res, *buf, *buf2;
     struct passwd *pwd;
@@ -234,7 +234,7 @@ void init_plateform(void)
     it.it_value.tv_sec = 0;
     it.it_value.tv_usec = 20000;
     setitimer(ITIMER_REAL, &it, (struct itimerval *)0);
-
+#endif
 } /* init_plateform */
 
 

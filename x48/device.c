@@ -87,7 +87,9 @@ void check_devices(void)
     }
     if (device.baud_touched) {
         device.baud_touched = 0;
+#if !defined(SF2000)
         serial_baud(saturn.baud);
+#endif
     }
     if (device.ioc_touched) {
         device.ioc_touched = 0;
@@ -97,11 +99,15 @@ void check_devices(void)
     }
     if (device.rbr_touched) {
         device.rbr_touched = 0;
+#if !defined(SF2000)
         receive_char();
+#endif
     }
     if (device.tbr_touched) {
         device.tbr_touched = 0;
+#if !defined(SF2000)
         transmit_char();
+#endif
     }
     if (device.t1_touched) {
         saturn.t1_instr = 0;

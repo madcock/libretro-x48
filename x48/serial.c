@@ -59,7 +59,7 @@
  *
  * $Id: serial.c,v 1.11 1995/01/11 18:20:01 ecd Exp ecd $
  */
-
+#if !defined(SF2000)
 
 #include "global.h"
 
@@ -719,3 +719,4 @@ receive_char()
   }
 }
 
+#endif

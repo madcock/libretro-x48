@@ -517,7 +517,11 @@ void get_home_directory(char *path)
             strcpy(path, p);
             strcat(path, "/");
         } else {
+#if !defined(SF2000)			
             pwd = getpwuid(getuid());
+#else
+			pwd = 0;
+#endif
             if (pwd) {
                 strcpy(path, pwd->pw_dir);
                 strcat(path, "/");
@@ -1101,8 +1105,9 @@ int  init_emulator(void)
     //   // if (!read_rom("/Users/miguelvanhove/Downloads/rom48s_e.rom")) {
     //   exit(1);
 
-
+#if !defined(SF2000)
     serial_init();
+#endif
     init_display();
 
 
@@ -1238,7 +1243,9 @@ void LireSnapshotMem(u8 *snap)
     update_display();
 
 
+#if !defined(SF2000)
     serial_init();
+#endif
 
     emulate_start();
 
