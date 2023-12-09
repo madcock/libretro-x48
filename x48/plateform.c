@@ -266,7 +266,7 @@ int button_pressed(int b)
 
     saturn.kbd_ien = 1;
 
-    fprintf(stderr, "Button pressed  %d (%s) - %d\n", buttons[b].code, buttons[b].name, b);
+    //fprintf(stderr, "Button pressed  %d (%s) - %d\n", buttons[b].code, buttons[b].name, b);
     return 0;
 } /* button_pressed */
 
@@ -287,7 +287,7 @@ int button_released(int b)
         c = 1 << (code & 0xf);
         saturn.keybuf.rows[r] &= ~c;
     }
-    fprintf(stderr, "Button released  %d (%s)\n",  buttons[b].code, buttons[b].name);
+    //fprintf(stderr, "Button released  %d (%s)\n",  buttons[b].code, buttons[b].name);
 
     return 0;
 }

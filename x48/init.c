@@ -548,19 +548,31 @@ int read_files(void)
 
     char path[1024];
 
+#if defined(SF2000)
+    strcpy(path, "/mnt/sda1/ROMS/save/");
+#else
     strcpy(path, "/Users/miguelvanhove/Downloads/");
+#endif
 
 
     saturn.rom = (word_4 *)NULL;
 
+#if defined(SF2000)
+    strcpy(fnam, "/mnt/sda1/bios/hp48gx.rom");
+#else
     strcpy(fnam, "/Users/miguelvanhove/Downloads/rom");
+#endif
 
     if (!read_rom_file(fnam, &saturn.rom, &rom_size))
         return 0;
 
     rom_is_new = 0;
 
+#if defined(SF2000)
+    strcpy(path, "/mnt/sda1/ROMS/save/");
+#else
     strcpy(fnam, "/Users/miguelvanhove/Downloads/");
+#endif
     strcat(fnam, "hp48.ok");
     if (NULL == (fp = fopen(fnam, "r"))) {
         fprintf(stderr, "%s: can\'t open %s\n", progname, fnam);
@@ -901,7 +913,11 @@ int write_files(void)
     FILE *fp;
 
     make_dir = 0;
+#if defined(SF2000)
+    strcpy(path, "/mnt/sda1/ROMS/save/");
+#else
     strcpy(path, "/Users/miguelvanhove/Downloads/");
+#endif
 
     if (stat(path, &st) == -1) {
         if (errno == ENOENT) {
@@ -1119,7 +1135,10 @@ int  init_emulator(void)
 
 int exit_emulator(void)
 {
+#if !defined(SF2000)
+	// TODO: This is a hack just to keep the files unchanging on SF2000!
     write_files();
+#endif
     return 1;
 }
 

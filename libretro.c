@@ -20,6 +20,7 @@
 #define RETRO_DEVICE_ARKANOID RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_MOUSE, 0)
 #define RETRO_DEVICE_ZAPPER   RETRO_DEVICE_SUBCLASS(RETRO_DEVICE_POINTER, 0)
 
+#if 0
 #define PXtoPOS(x) ((x) / 1)
 #define PYtoPOS(y) ((y) / 1)
 
@@ -30,19 +31,24 @@ void draw_cross(unsigned short int *surface, int x, int y);
 void restore_background_cross(unsigned short int *surface, int x, int y);
 
 #define maxByCycle 400            // 50 fois par frame
+#endif
 
 int borderX = 1;
 int borderY = 1;
+#if 0
 int zoom = 1;
 
 int last_press;
 
 int px = -1, py = -1;
+#endif
 
 extern unsigned char background_gif[];
 extern unsigned int background_gif_len;
 
+#if 0
 bool old_mouse_l = false;
+#endif
 
 u8 *snapshot = NULL;
 u32 snapshotLength;
@@ -50,9 +56,11 @@ u32 snapshotLength;
 int object_size;
 char *object;
 
+#if 0
 char fullscreen = 1;
 
 void updateFromEnvironnement();
+#endif
 
 int height, width;
 u16 *pixels;
@@ -62,9 +70,11 @@ int winH, winW;
 
 u16 *background;
 
+#if 0
 int order = 0; // For the surrounder pixel
 
 int p_x, p_y;
+#endif
 
 char keypad_pressed[HANDLED_BUTTON];
 
@@ -101,6 +111,7 @@ static void fallback_log(enum retro_log_level level, const char *fmt, ...)
     va_end(va);
 }
 
+#if 0
 static int KeySymToCPCKey[RETROK_LAST];
 static int KeySymToCPCKey[RETROK_LAST];
 
@@ -200,7 +211,7 @@ struct keyScr {
     {483, 357, 42, 24}, // BUTTON_SPC      47
     {539, 357, 42, 24} // BUTTON_PLUS     48
 };
-
+#endif
 
 void retro_init(void)
 {
@@ -214,6 +225,7 @@ void retro_init(void)
 
     bgcolor =  RGB15(123, 133, 97);
 
+#if 0
     // pixels = (u16*)malloc(width*height*2);  // <-- correct
 
 
@@ -250,6 +262,7 @@ void retro_init(void)
     KeySymToCPCKey[RETROK_SLASH] = BUTTON_DIV;
 
 //
+#endif
 
     disp.disp_image = malloc(sizeof(disp_image_t));
     disp.disp_image->bytes_per_line = NIBBLES_PER_ROW;
@@ -259,7 +272,12 @@ void retro_init(void)
 
     disp.mapped = 1;
 
+#if !defined(SF2000)
     resetOnStartup = 1;
+#else
+	// TODO: this is a hack to prevent wiping out the saved RAM we load elsewhere
+    resetOnStartup = 0;
+#endif
 
     init_emulator();
 
@@ -267,9 +285,6 @@ void retro_init(void)
     init_plateform();
 
     emulate_start();
-
-
-
 
     u32 bckWidth, bckHeight;
     ReadBackgroundGifInfo(&bckWidth, &bckHeight, (unsigned char *)&background_gif, background_gif_len);
@@ -284,7 +299,6 @@ void retro_init(void)
     }
     winW = width + borderX * 2;
     winH = height + borderY * 2;
-
 
     fprintf(stderr, "Background %dx%d %p\n", bckWidth, bckHeight, background);
     fprintf(stderr, "%d > %d\n", size, bckWidth * bckHeight * 2);
@@ -329,14 +343,22 @@ void retro_get_system_info(struct retro_system_info *info)
 void retro_get_system_av_info(struct retro_system_av_info *info)
 {
     info->timing.fps = 60.0;
+#if !defined(SF2000)
     info->timing.sample_rate = 44100.0;
+#else
+    info->timing.sample_rate = 11025.0;
+#endif
 
     info->geometry.base_width = width + borderX * 2;
     info->geometry.base_height = height + borderY * 2;
 
+#if !defined(SF2000)
     info->geometry.max_width = 800;
     info->geometry.max_height = 600;
-
+#else
+    info->geometry.max_width = width;
+    info->geometry.max_height = height;
+#endif
     info->geometry.aspect_ratio = width / height;
 }
 
@@ -413,12 +435,13 @@ void retro_reset(void)
     saturn.PC = 0;
 }
 
-
+#if 0
 void updateFromEnvironnement()
 {
 
 
 }
+#endif
 
 void retro_key_down(int key)
 {
@@ -427,7 +450,7 @@ void retro_key_down(int key)
 
 static char keyPressed[24] = {0};
 
-
+#if 0
 void fullScreenEnter(void)
 {
     int i;
@@ -484,6 +507,8 @@ void fullScreenLeave(void)
 
 } /* fullScreenLeave */
 
+#endif
+
 void retro_run(void)
 {
     static int pos = 0;
@@ -491,12 +516,15 @@ void retro_run(void)
 
     static bool updated = false;
 
+#if 0
     if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated) {
         updateFromEnvironnement();
     }
+#endif
 
     input_poll_cb();
 
+#if 0
     // int16_t p_x = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_X);
     // int16_t p_y = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_Y);
     // int p_press = input_state_cb(0, RETRO_DEVICE_POINTER, 0, RETRO_DEVICE_ID_POINTER_PRESSED);
@@ -511,7 +539,6 @@ void retro_run(void)
     if ((p_y + mouse_y >= 0) && (p_y + mouse_y < winH)) {
         p_y += mouse_y;
     }
-
 
 
     // if (!input_state_cb(0, RETRO_DEVICE_LIGHTGUN, 0, RETRO_DEVICE_ID_LIGHTGUN_IS_OFFSCREEN)) {
@@ -557,22 +584,59 @@ void retro_run(void)
                 }
             }
         }
-
     }
+#endif
 
     if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT)) {
         keypad_pressed[BUTTON_A] = 2;
         button_pressed(BUTTON_A);
     }
-    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT)) {
+    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP)) {
+        keypad_pressed[BUTTON_B] = 2;
+        button_pressed(BUTTON_B);
+    }
+    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L)) {
+        keypad_pressed[BUTTON_C] = 2;
+        button_pressed(BUTTON_C);
+    }
+    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R)) {
+        keypad_pressed[BUTTON_D] = 2;
+        button_pressed(BUTTON_D);
+    }
+    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X)) {
+        keypad_pressed[BUTTON_E] = 2;
+        button_pressed(BUTTON_E);
+    }
+    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A)) {
         keypad_pressed[BUTTON_F] = 2;
         button_pressed(BUTTON_F);
     }
-    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A)) {
-        keypad_pressed[BUTTON_A] = 2;
-        button_pressed(BUTTON_A);
+    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT)) {
+        keypad_pressed[BUTTON_BS] = 2;
+        button_pressed(BUTTON_BS);
+    }
+    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START)) {
+        keypad_pressed[BUTTON_ENTER] = 2;
+        button_pressed(BUTTON_ENTER);
+    }
+    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT)) {
+        keypad_pressed[BUTTON_COLON] = 2;
+        button_pressed(BUTTON_COLON);
+    }
+    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN)) {
+        keypad_pressed[BUTTON_SHL] = 2;
+        button_pressed(BUTTON_SHL);
+    }
+    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y)) {
+        keypad_pressed[BUTTON_NXT] = 2;
+        button_pressed(BUTTON_NXT);
+    }
+    if (input_state_cb(0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B)) {
+        keypad_pressed[BUTTON_VAR] = 2;
+        button_pressed(BUTTON_VAR);
     }
 
+    int i;
     for (i = 0; i < HANDLED_BUTTON; i++) {
         if (keypad_pressed[i] > 0) {
             keypad_pressed[i]--;
@@ -582,7 +646,7 @@ void retro_run(void)
         }
     }
 
-
+#if 0
     for (i = 0; i < RETROK_LAST; i++) {
         int scanCode = KeySymToCPCKey[i];
 
@@ -713,16 +777,16 @@ void retro_run(void)
 //       fprintf(stderr,  "Pointer: (%6d, %6d).\n", pointer_x, pointer_y);
 
 // }
-
+#endif
 
     if (loadFile_flag != 0) {
         switch (loadFile_flag) {
 
-            case 300:
+            case 400:
                 fprintf(stderr, "Load %s\n", file_path);
                 int retour = LoadObject(object_size, object);
 
-                fprintf(stderr, "loadfile 240 - Retour: %d\n", retour);
+                //fprintf(stderr, "loadfile 240 - Retour: %d\n", retour);
                 break;
             case 160:
                 button_pressed(BUTTON_ENTER);
@@ -731,12 +795,12 @@ void retro_run(void)
                 button_released(BUTTON_ENTER);
                 break;
             case 80:
-                fprintf(stderr, "loadFile_flag 80\n");
+                //fprintf(stderr, "loadFile_flag 80\n");
 
                 button_pressed(BUTTON_EVAL);
                 break;
             case 10:
-                fprintf(stderr, "loadFile_flag 10\n");
+                //fprintf(stderr, "loadFile_flag 10\n");
 
                 button_released(BUTTON_EVAL);
                 break;
@@ -756,7 +820,7 @@ void retro_run(void)
 
 // disp.disp_image->data[rand()%(height*NIBBLES_PER_ROW)]=rand()%255;
 
-
+#if 0
     if (!fullscreen) {
 
         pointer_x = PXtoPOS(p_x);
@@ -965,6 +1029,16 @@ void retro_run(void)
             fprintf(stderr,  "Pointer: (%d, %d) (%x-%x) - %d.\n", pointer_x, pointer_y, p_x, p_y, 0);
             fprintf(stderr,  "Mouse: (%d, %d) - %d,%d.\n", mouse_x, mouse_y, width, winW);
         }
+ *  pixels[pos]=rand();
+ */
+
+    if (!fullscreen) {
+
+
+        if ((px != pointer_x) || (py != pointer_y)) {
+            fprintf(stderr,  "Pointer: (%d, %d) (%x-%x) - %d.\n", pointer_x, pointer_y, p_x, p_y, 0);
+            fprintf(stderr,  "Mouse: (%d, %d) - %d,%d.\n", mouse_x, mouse_y, width, winW);
+        }
 
         px = pointer_x;
         py = pointer_y;
@@ -977,6 +1051,36 @@ void retro_run(void)
 
 
     }
+#endif
+
+	int x, y;
+	u8 *data;
+	int y0 = 0;
+	int yb = disp.lines + 1;
+
+	for (y = 0; y < height; y++) {
+		if (y < yb) {
+			y0 = 0;
+			data = (u8 *)disp.disp_image->data;
+		} else {
+			y0 = yb;
+			data = (u8 *)disp.menu_image->data;
+		}
+
+		int npos = (y - y0) * NIBBLES_PER_ROW;
+		int spos = (y + borderY) * (width + borderX * 2) + borderX;
+
+		for (x = 0; x < NIBBLES_PER_ROW; x++) {
+			u8 nibble = data[npos];
+
+			for (int z = 0; z < 4; z++) {
+				pixels[spos + 3 - z] = ((nibble & 1) == 1) ? RGB15(0, 0, 0) : bgcolor;
+				nibble >>= 2;
+			}
+			spos += 4;
+			npos++;
+		}
+	}
 
     video_cb(pixels, winW, winH, winW * 2);
 
@@ -1030,7 +1134,11 @@ bool retro_load_game(const struct retro_game_info *info)
         log_cb(RETRO_LOG_INFO, "begin of load gamer s\n");
 
         strcpy(file_path, info->path);
+#if !defined(SF2000)
+		// TODO: loading a program is a timing nightmare, so
+		//       this hack prevents it from happening on SF2000
         loadGame();
+#endif
 
         log_cb(RETRO_LOG_INFO, "end of load gamer s\n");
     }
@@ -1065,13 +1173,13 @@ char loadHPHP48(long dsk_size, u8 *dsk)
 {
     log_cb(RETRO_LOG_INFO, "loadHPHP48\n");
 
-    fprintf(stderr, "loadFile_flag 600: %s\n", file_path);
+    //fprintf(stderr, "loadFile_flag 600: %s\n", file_path);
 
     object = (char *)malloc(dsk_size);
     memcpy(object, dsk, dsk_size);
     object_size = dsk_size;
 
-    loadFile_flag = 700;
+    loadFile_flag = 800;
 
     log_cb(RETRO_LOG_INFO, "send file %s to Stack\n", file_path);
 
@@ -1249,7 +1357,7 @@ void retro_cheat_set(unsigned index, bool enabled, const char *code)
     (void)code;
 }
 
-
+#if 0
 static const char *cross[20] = {
     "X                               ",
     "XX                              ",
@@ -1369,3 +1477,4 @@ void restore_background_cross(unsigned short int *surface, int x, int y)
         }
     }
 }
+#endif
